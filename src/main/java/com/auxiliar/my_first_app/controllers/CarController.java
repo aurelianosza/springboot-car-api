@@ -1,14 +1,17 @@
 package com.auxiliar.my_first_app.controllers;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.auxiliar.my_first_app.dtos.requests.CarRequest;
 import com.auxiliar.my_first_app.models.Car;
-import com.auxiliar.my_first_app.services.RepositoryInterface;
+import com.auxiliar.my_first_app.services.CarRepository;
 
 import jakarta.validation.Valid;
 
@@ -23,13 +26,17 @@ import org.springframework.web.bind.annotation.RequestBody;
 @RequestMapping("/cars")
 public class CarController {
     
-    @Autowired
-    private RepositoryInterface<Car> carRepository;
+    private CarRepository carRepository;
+
+    public CarController(CarRepository carRepository)
+    {
+        this.carRepository = carRepository;
+    }
 
     @GetMapping
     public List<Car> index()
     {
-        return this.carRepository.getAll();
+        return this.carRepository.findAll();
     }
 
     @PostMapping
@@ -43,7 +50,7 @@ public class CarController {
         car.setYear(request.getYear());
 
         Car carCreated = this.carRepository
-            .create(car);
+            .save(car);
         
         return carCreated;
     }
@@ -53,7 +60,11 @@ public class CarController {
         @PathVariable Long carId
     ) {
         Car car = this.carRepository
-            .show(carId);
+            .findById(carId)
+            .orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.NOT_FOUND,
+                "car not found"
+            ));
 
         return car;
     }
@@ -63,23 +74,38 @@ public class CarController {
         @PathVariable Long carId,
         @Valid @RequestBody CarRequest request
     ) {
-        Car car = new Car();
+        Car car = this.carRepository
+            .findById(carId)
+            .orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.NOT_FOUND,
+                "car not found"
+            ));
 
         car.setBrand(request.getBrand());
         car.setModel(request.getModel());
         car.setYear(request.getYear());
 
         this.carRepository
-            .update(carId, car);
+            .save(car);
     }
 
     @DeleteMapping("/{carId}")
     public Car destroy(
         @PathVariable Long carId
     ) {
-        Car car = this.carRepository
-            .delete(carId);
+        Optional<Car> car = this.carRepository
+            .findById(carId);
 
-        return car;
+        if (car.isEmpty()) {
+            throw new ResponseStatusException(
+                HttpStatus.NOT_FOUND,
+                "car not found"
+            );
+        }
+
+        this.carRepository
+            .deleteById(carId);
+
+        return car.get();
     }
 }
