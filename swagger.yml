@@ -1,0 +1,276 @@
+openapi: 3.0.4
+info:
+  title: Cars API
+  description: Uma api básica com somente um CRUD, criado com o intúito de estudos da linguagem java com o framework Springboot
+  version: 0.1.0
+
+servers:
+  - url: http://127.0.0.1
+    description: API local de desenvolvimento
+
+components:
+  schemas:
+    Car:
+      type: object
+      properties:
+        model:
+          type: string
+          description: Modelo do carro cadastrado
+          example: "GM Chevrolet"
+        brand:
+          type: string
+          description: Marca do carro
+          example: "S10"
+        year:
+          type: number
+          example: 2025
+    
+    EntityNotFound:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          example: "2025-10-06T18:19:56.774+00:00"
+        status:
+          type: number
+          example: 404
+        error:
+          type: string
+          example: "Not Found"
+        message:
+          type: string
+          example: "Car not found"
+        path:
+          type: string
+          example: "/cars/10"
+    
+    ValidationError:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          description: Data e hora da requiisicao
+          example: '2025-10-06T17:38:46.124+00:00'
+        status:
+          type: number
+          example: 400
+        error:
+          type: string
+          example: "Bad request"
+        message:
+          type: string
+          example: "Validation failed for object='carRequest'. Error count: 1"
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              objectName:
+                type: string
+                example: "carRequest"
+              field:
+                type: string
+                example: "year"
+              rejectedValue:
+                type: string
+                example: "abcd"
+                nullable: true
+              codes:
+                type: array
+                items:
+                  type: string
+                  example:
+                    - "NotNull.carRequest.year"
+                    - "NotNull.year"
+                    - "NotNull.java.lang.Long"
+                    - "NotNull"
+              arguments:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    codes:
+                      type: array
+                      items:
+                        type: string
+                        example:
+                         - "carRequest.year"
+                         - "year"
+                    arguments:
+                      type: string
+                      nullable: true
+                    defaultMessage:
+                      type: string
+                      example: "year"
+                    code:
+                      type: string
+                      example: "year"
+                    
+              defaultMessate:
+                type: string
+                example: "Should be required"
+      
+
+paths:
+  /cars:
+    get:
+      summary: Retorno básico da lista de carros já cadastrado.
+      description: Até o momento trata-se de um endpoint simples de retorno de todos os registros casastrados na entidade cars.
+      responses:
+        "200": # status code
+          description: JSON com lista de entidades de carros cadastrados
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  allOf:
+                    - type: object
+                      properties:
+                        id:
+                          type: number
+                          example: 1
+                    - $ref: '#/components/schemas/Car'
+
+
+    post:
+      summary: Cria um registro de carro
+      description: Recebe os parâmetros de requisição no corpo e cria um registro de entidade carro
+      
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Car'
+                  
+      responses:
+        "201":
+          description: Carro criado com sucesso
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      id:
+                        type: number
+                        example: 1
+                  - $ref: '#/components/schemas/Car'
+                  
+                  
+        "400":
+          description: Erro no formato dos campos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+                  
+                  
+
+  /cars/{carId}:
+    get:
+      summary: Mostra detalhes de uma entidade de Car
+      description: Mostra detalhes de um determinado registro de Car através do Id passado pela url
+      
+      parameters:
+        - in: path
+          name: carId
+          required: true
+          schema:
+            type: number
+      
+      responses:
+        '200':
+          description: O registro exsite e é mostrado com sucesso
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      id:
+                        type: number
+                        example: 2
+                  - $ref: '#/components/schemas/Car'
+        '404':
+          description: Entidade de Car não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityNotFound'
+                
+    patch:
+      summary: Atualiza um registro de entidade Car
+      description: atualia detalhes de um determinado registro de Car com os parametros recebidos em seu corpo
+      
+      parameters:
+        - in: path
+          name: carId
+          required: true
+          schema:
+            type: number
+            
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Car'
+            
+      responses:
+        '200':
+          description: Entidade atualizada com sucesso
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      id:
+                        type: number
+                        example: 2
+                  - $ref: '#/components/schemas/Car'
+                  
+        
+        '404':
+          description: Entidade de Car não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityNotFound'
+                
+    
+    delete:
+      summary: Exclui um registro de entidade Car
+      description: Realiza a exclusão de uma entidade Car com o Id passado via parâmetro
+      
+      parameters:
+        - in: path
+          name: carId
+          required: true
+          schema:
+            type: number
+            
+            
+      responses:
+        '200':
+          description: Entidade excluída com sucesso
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - type: object
+                    properties:
+                      id:
+                        type: number
+                        example: 2
+                  - $ref: '#/components/schemas/Car'
+                  
+        
+        '404':
+          description: Entidade de Car não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntityNotFound'
+    
+
