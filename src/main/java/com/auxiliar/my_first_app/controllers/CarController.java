@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.auxiliar.my_first_app.dtos.requests.CarRequest;
 import com.auxiliar.my_first_app.models.Car;
-import com.auxiliar.my_first_app.services.CarRepository;
+import com.auxiliar.my_first_app.services.RepositoryInterface;
 
 import jakarta.validation.Valid;
 
@@ -24,12 +24,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 public class CarController {
     
     @Autowired
-    private CarRepository carRepository;
+    private RepositoryInterface<Car> carRepository;
 
     @GetMapping
     public List<Car> index()
     {
-        return this.carRepository.showAll();
+        return this.carRepository.getAll();
     }
 
     @PostMapping

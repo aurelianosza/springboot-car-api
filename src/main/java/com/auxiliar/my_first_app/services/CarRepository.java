@@ -8,7 +8,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.auxiliar.my_first_app.models.Car;
 
-public class CarRepository {
+public class CarRepository implements RepositoryInterface<Car>{
     
     private Long currentId = (long)0;
     private List<Car> carList;
@@ -17,7 +17,7 @@ public class CarRepository {
         this.carList = new ArrayList<Car>();
     }
 
-    public List<Car> showAll()
+    public List<Car> getAll()
     {
         return this.carList;
     }
